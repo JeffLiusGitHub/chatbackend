@@ -107,8 +107,8 @@ const apiQuery = async (question) => {
   const configuration = new openai.Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
-  const openai = new openai.OpenAIApi(configuration);
-  const completion = await openai.createCompletion(
+  const openai = new OpenAIApi(configuration);
+  const completion = await createCompletion(
     {
       model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: question }],
