@@ -158,7 +158,7 @@ app.get("/query", async (req, res) => {
   // };
   //
   const fetchData = async (inputText) => {
-    const agent = new HttpsProxyAgent("http://127.0.0.1:7890");
+    const agent = new HttpsProxyAgent("http://127.0.0.1:80");
 
     const response = await axios
       .post(
