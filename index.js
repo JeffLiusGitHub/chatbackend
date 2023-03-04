@@ -127,6 +127,28 @@ const apiQuery = async (question) => {
 };
 
 app.get("/query", async (req, res) => {
+  const apiQuery = async (question) => {
+    const configuration = new openai.Configuration({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    const openai = new OpenAIApi(configuration);
+    const completion = await createCompletion(
+      {
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: question }],
+      },
+      {
+        proxy: false,
+        httpAgent: tunnel.httpOverHttp({
+          proxy: {
+            host: "127.0.0.1",
+            port: 7890,
+          },
+        }),
+      }
+    );
+    return completion.data.choices[0].text;
+  };
   const question = req.query.question;
   try {
     const answer = await apiQuery(question);
