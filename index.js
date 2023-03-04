@@ -7,6 +7,7 @@ const tunnel = require("tunnel");
 const { addUser, removeUser, getUser, getUsersInRoom } = require("./users");
 const { Configuration, OpenAIApi } = require("openai");
 const HttpsProxyAgent = require("https-proxy-agent");
+const axios = require("axios");
 const router = require("./router");
 
 const app = express();
