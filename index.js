@@ -160,20 +160,24 @@ app.get("/query", async (req, res) => {
   const fetchData = async (inputText) => {
     const agent = new HttpsProxyAgent("http://127.0.0.1:7890");
 
-    const response = await axios.post(
-      process.env.CHAT_API_URL,
-      {
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: inputText }],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
+    const response = await axios
+      .post(
+        process.env.CHAT_API_URL,
+        {
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: inputText }],
         },
-        httpsAgent: agent,
-      }
-    );
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          httpsAgent: agent,
+        }
+      )
+      .catch((err) => {
+        console.log(err.message);
+      });
 
     return response.data.choices[0].message.content.trim();
   };
