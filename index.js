@@ -6,6 +6,7 @@ const openai = require("openai");
 const tunnel = require("tunnel");
 const { addUser, removeUser, getUser, getUsersInRoom } = require("./users");
 const { Configuration, OpenAIApi } = require("openai");
+const HttpsProxyAgent = require("https-proxy-agent");
 const router = require("./router");
 
 const app = express();
@@ -14,6 +15,8 @@ const io = socketio(server);
 
 app.use(cors());
 app.use(router);
+
+const CHAT_API_URL = "https://api.openai.com/v1/chat/completions";
 
 io.on("connect", (socket) => {
   socket.on("join", ({ name, room }, callback) => {
@@ -127,31 +130,54 @@ const apiQuery = async (question) => {
 };
 
 app.get("/query", async (req, res) => {
-  const apiQuery = async (question) => {
-    const configuration = new openai.Configuration({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-    const openai = new OpenAIApi(configuration);
-    const completion = await createCompletion(
+  // const apiQuery = async (question) => {
+  //   const configuration = new openai.Configuration({
+  //     apiKey: process.env.OPENAI_API_KEY,
+  //   });
+  //   const openai = new OpenAIApi(configuration);
+  //   const completion = await createCompletion(
+  //     {
+  //       model: "gpt-3.5-turbo",
+  //       messages: [{ role: "user", content: question }],
+  //     },
+  //     {
+  //       proxy: false,
+  //       httpAgent: tunnel.httpOverHttp({
+  //         proxy: {
+  //           host: "127.0.0.1",
+  //           port: 7890,
+  //         },
+  //       }),
+  //     }
+  //   );
+  //   return completion.data.choices[0].text;
+  // };
+  //
+  const fetchData = async (inputText) => {
+    const agent = new HttpsProxyAgent("http://127.0.0.1:7890");
+
+    const response = await axios.post(
+      CHAT_API_URL,
       {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: question }],
+        messages: [{ role: "user", content: inputText }],
       },
       {
-        proxy: false,
-        httpAgent: tunnel.httpOverHttp({
-          proxy: {
-            host: "127.0.0.1",
-            port: 7890,
-          },
-        }),
+        headers: {
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        httpsAgent: agent,
       }
     );
-    return completion.data.choices[0].text;
+
+    return response.data.choices[0].message.content.trim();
   };
+
+  //
   const question = req.query.question;
   try {
-    const answer = await apiQuery(question);
+    const answer = await fetchData(question);
     res.send(answer);
   } catch (e) {
     res.send(JSON.stringify({ Error: e.message }));
