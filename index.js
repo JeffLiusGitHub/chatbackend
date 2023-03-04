@@ -176,10 +176,12 @@ app.get("/query", async (req, res) => {
 
   //
   const question = req.query.question;
+  console.log(question);
   try {
     const answer = await fetchData(question);
     res.send(answer);
   } catch (e) {
+    console.log(e);
     res.send(JSON.stringify({ Error: e.message }));
   }
 });
