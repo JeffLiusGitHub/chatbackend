@@ -164,7 +164,7 @@ app.get("/query", async (req, res) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           "Content-Type": "application/json",
         },
         httpsAgent: agent,
