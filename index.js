@@ -2,8 +2,10 @@ const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 const cors = require("cors");
-import { Configuration, OpenAIApi } from "openai";
-import tunnel from "tunnel";
+const openai = require("openai");
+// import { Configuration, OpenAIApi } from "openai";
+const tunnel = require("tunnel");
+// import tunnel from "tunnel";
 
 const { addUser, removeUser, getUser, getUsersInRoom } = require("./users");
 
@@ -105,10 +107,10 @@ io.on("connect", (socket) => {
 //
 
 const apiQuery = async (question) => {
-  const configuration = new Configuration({
+  const configuration = new openai.Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
-  const openai = new OpenAIApi(configuration);
+  const openai = new openai.OpenAIApi(configuration);
   const completion = await openai.createCompletion(
     {
       model: "gpt-3.5-turbo",
