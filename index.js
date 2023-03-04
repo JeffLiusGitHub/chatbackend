@@ -9,6 +9,7 @@ const { Configuration, OpenAIApi } = require("openai");
 const HttpsProxyAgent = require("https-proxy-agent");
 const axios = require("axios");
 const router = require("./router");
+require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
@@ -16,8 +17,6 @@ const io = socketio(server);
 
 app.use(cors());
 app.use(router);
-
-const CHAT_API_URL = "https://api.openai.com/v1/chat/completions";
 
 io.on("connect", (socket) => {
   socket.on("join", ({ name, room }, callback) => {
@@ -158,7 +157,7 @@ app.get("/query", async (req, res) => {
     const agent = new HttpsProxyAgent("http://127.0.0.1:7890");
 
     const response = await axios.post(
-      CHAT_API_URL,
+      process.env.CHAT_API_URL,
       {
         model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: inputText }],
