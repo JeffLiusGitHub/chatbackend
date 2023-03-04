@@ -14,8 +14,12 @@ require("dotenv").config();
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
+const corsOptions = {
+  origin: "*",
+  optionsSuccessStatus: 200,
+};
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(router);
 
 io.on("connect", (socket) => {
