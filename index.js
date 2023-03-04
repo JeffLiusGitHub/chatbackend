@@ -3,12 +3,9 @@ const express = require("express");
 const socketio = require("socket.io");
 const cors = require("cors");
 const openai = require("openai");
-// import { Configuration, OpenAIApi } from "openai";
 const tunnel = require("tunnel");
-// import tunnel from "tunnel";
-
 const { addUser, removeUser, getUser, getUsersInRoom } = require("./users");
-
+const { Configuration, OpenAIApi } = require("openai");
 const router = require("./router");
 
 const app = express();
