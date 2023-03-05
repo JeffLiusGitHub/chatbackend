@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node index.js",
-    "build": "npm install"
+    "build": "npm install",
+    "dev":"nodemon index.js"
   },
   "keywords": [],
   "author": "",

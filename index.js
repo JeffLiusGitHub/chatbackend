@@ -1,6 +1,7 @@
 const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
+const bodyParser = require("body-parser");
 const cors = require("cors");
 const openai = require("openai");
 const tunnel = require("tunnel");
@@ -21,7 +22,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(router);
-
+app.use(bodyParser.json());
 io.on("connect", (socket) => {
   socket.on("join", ({ name, room }, callback) => {
     const { error, user } = addUser({ id: socket.id, name, room });
@@ -76,121 +77,37 @@ io.on("connect", (socket) => {
     }
   });
 });
-
-//
-// app.get ("/query", async (req, res) => {
-//   const key = req.query. key;
-//   const question = req.query.question;
-
-//   try {
-//     const answer = await apiQuery (key, question);
-//     res.send(answer);
-//   } catch (e) {
-//     res.send(JSON.stringify({ Error: e.message }));
-//   }
-
-//   async const apiQuery=(key, question)=> {
-//   const configuration = new Configuration ({
-//   apiKey: process.env.OPENAI_API_KEY,
-// });
-//   const openai = new OpenAIApi(configuration);
-//   const completion = await openai.createCompletion(
-//   {
-//   model: "gpt-3.5-turbo",
-//   messages: [ {role: "user", content: question }],
-//   },
-// {
-//   proxy:false,
-//   httpAgent:tunnel.httpOverHttp({
-//     proxy:{
-//       host:"127.0.0.1",port:7890
-//     }
-//   })
-//   }
-// )
-//
-
-const apiQuery = async (question) => {
-  const configuration = new openai.Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  const openai = new OpenAIApi(configuration);
-  const completion = await createCompletion(
-    {
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: question }],
-    },
-    {
-      proxy: false,
-      httpAgent: tunnel.httpOverHttp({
-        proxy: {
-          host: "127.0.0.1",
-          port: 7890,
+const fetchData = async (inputText) => {
+  const agent = new HttpsProxyAgent("http://127.0.0.1:7890");
+  try {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: inputText }],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
         },
-      }),
-    }
-  );
-  return completion.data.choices[0].text;
+        // httpsAgent: agent,
+      }
+    );
+    console.log(response.data.choices[0].message.content);
+    return response.data.choices[0].message.content;
+  } catch (err) {
+    return err.response;
+  }
 };
-
-app.get("/query", async (req, res) => {
-  // const apiQuery = async (question) => {
-  //   const configuration = new openai.Configuration({
-  //     apiKey: process.env.OPENAI_API_KEY,
-  //   });
-  //   const openai = new OpenAIApi(configuration);
-  //   const completion = await createCompletion(
-  //     {
-  //       model: "gpt-3.5-turbo",
-  //       messages: [{ role: "user", content: question }],
-  //     },
-  //     {
-  //       proxy: false,
-  //       httpAgent: tunnel.httpOverHttp({
-  //         proxy: {
-  //           host: "127.0.0.1",
-  //           port: 7890,
-  //         },
-  //       }),
-  //     }
-  //   );
-  //   return completion.data.choices[0].text;
-  // };
-  //
-  const fetchData = async (inputText) => {
-    const agent = new HttpsProxyAgent("http://127.0.0.1:80");
-
-    const response = await axios
-      .post(
-        process.env.CHAT_API_URL,
-        {
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "user", content: inputText }],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          httpsAgent: agent,
-        }
-      )
-      .catch((err) => {
-        console.log(err.message);
-      });
-
-    return response.data.choices[0].message.content.trim();
-  };
-
-  //
-  const question = req.query.question;
-  console.log(question);
+app.post("/query", async (req, res) => {
+  const { question } = req.body;
   try {
     const answer = await fetchData(question);
-    res.send(answer);
+    res.status(200).send({ answer });
   } catch (e) {
-    console.log(e);
-    res.send(JSON.stringify({ Error: e.message }));
+    console.log(e.response);
+    res.status(500).send({ error: e.message });
   }
 });
 
